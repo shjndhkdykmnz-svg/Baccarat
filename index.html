@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Baccarat Camera Scanner</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1512;--panel:#14231e;--line:#294238;--gold:#e8c979;--muted:#a9bbb2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f4f7f5;font:16px system-ui,-apple-system,sans-serif;padding:18px 14px 40px}
+main{max-width:720px;margin:auto}h1{text-align:center;color:var(--gold);font-size:25px;margin:8px 0 4px}.sub{text-align:center;color:var(--muted);font-size:13px;margin:0 0 18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px;margin:12px 0}
+h2{font-size:17px;margin:0 0 12px}.camera{background:#050908;border-radius:12px;overflow:hidden;min-height:220px;display:grid;place-items:center;position:relative}
+video{width:100%;max-height:55vh;object-fit:contain;display:none}#placeholder{padding:35px 15px;text-align:center;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}
+button,select{border:0;border-radius:10px;padding:12px 13px;font:inherit;font-weight:650}
+button{background:#d9bd72;color:#172018}button.secondary{background:#31483e;color:white}button:disabled{opacity:.45}
+input,select{background:#0d1914;color:white;border:1px solid var(--line);min-width:0}
+.note{color:var(--muted);font-size:13px;line-height:1.5}
+.status{font-size:13px;color:var(--gold);min-height:20px;margin-top:9px}
+.card-input{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card-input label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+.card-input select{width:100%}
+.preview{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.playing-card{background:#f8f5ed;color:#172018;border-radius:10px;padding:12px 16px;min-width:54px;text-align:center;font-size:22px;font-weight:800}
+.playing-card.red{color:#c52c39}
+.metric{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}
+.metric:last-child{border:0}
+.big{font-size:25px;font-weight:800;color:var(--gold)}
+.board{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.cell{aspect-ratio:1;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;background:#0d1914;font-weight:800}
+.dot{width:31px;height:31px;border-radius:50%;display:grid;place-items:center;color:white;font-size:13px}
+.P{background:#2878df}.B{background:#d83d45}.T{background:#239b68}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:left;padding:9px 5px;border-bottom:1px solid var(--line)}
+small{color:var(--muted)}.warn{border-left:3px solid var(--gold);padding-left:10px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<h1>♠ BACCARAT SCANNER</h1>
+<p class="sub">สแกนไพ่ด้วยกล้อง · คำนวณแต้ม · บันทึกประวัติบนอุปกรณ์</p>
+
+<section class="panel">
+<h2>1. กล้องสแกนไพ่</h2>
+<div class="camera">
+  <video id="video" autoplay playsinline muted></video>
+  <div id="placeholder">📷<br>กด “เปิดกล้อง” แล้วเล็งให้เห็นหน้าไพ่ชัดเจน</div>
+</div>
+<div class="row" style="margin-top:10px">
+<button id="start">เปิดกล้อง</button>
+<button id="snap" class="secondary" disabled>ถ่ายภาพไพ่</button>
+<button id="stop" class="secondary" disabled>ปิดกล้อง</button>
+</div>
+<canvas id="canvas" class="hidden"></canvas>
+<p class="status" id="cameraStatus">กล้องยังไม่ทำงาน</p>
+<p class="note warn">การอ่านภาพอัตโนมัติในรุ่นนี้เป็นต้นแบบ: เว็บจะถ่ายภาพให้ดู แต่ยังไม่สามารถยืนยันหน้าไพ่จากภาพได้อย่างน่าเชื่อถือ จึงให้เลือกหน้าไพ่ด้วยตนเองก่อนบันทึก เพื่อป้องกันการบันทึกผิด</p>
+</section>
+
+<section class="panel">
+<h2>2. ป้อนหน้าไพ่ที่เห็น</h2>
+<div class="card-input">
+<div><label for="side">ฝั่ง</label><select id="side"><option value="P">Player</option><option value="B">Banker</option></select></div>
+<div><label for="rank">หน้าไพ่</label><select id="rank">
+<option value="A">A</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>J</option><option>Q</option><option>K</option>
+</select></div>
+<div><label for="suit">ดอกไพ่</label><select id="suit"><option value="♠">♠ โพดำ</option><option value="♥">♥ โพแดง</option><option value="♦">♦ ข้าวหลามตัด</option><option value="♣">♣ ดอกจิก</option></select></div>
+<div><label for="hand">ลำดับไพ่</label><select id="hand"><option value="P">Player</option><option value="B">Banker</option></select></div>
+</div>
+<div class="row" style="margin-top:12px">
+<button id="addCard">เพิ่มไพ่เข้ามือ</button>
+<button id="clearHands" class="secondary">ล้างไพ่ในมือนี้</button>
+</div>
+<div class="preview" style="margin-top:12px">
+<div><small>PLAYER</small><div id="playerCards">ยังไม่มีไพ่</div><div class="big" id="playerScore">แต้ม 0</div></div>
+<div><small>BANKER</small><div id="bankerCards">ยังไม่มีไพ่</div><div class="big" id="bankerScore">แต้ม 0</div></div>
+</div>
+<div class="row" style="margin-top:12px">
+<button id="saveRound">บันทึกผลตานี้</button>
+</div>
+<p class="note">เพิ่มไพ่ทุกใบที่เปิดในตานั้นให้ครบก่อนบันทึก (สูงสุด 3 ใบต่อฝั่ง) แต้มบาคาร่า: A=1, 2–9 ตามหน้า, 10/J/Q/K=0 และใช้เลขหลักหน่วยของผลรวม</p>
+</section>
+
+<section class="panel">
+<h2>3. ผลตานี้</h2>
+<div class="metric"><span>แต้ม Player</span><strong id="pTotal">—</strong></div>
+<div class="metric"><span>แต้ม Banker</span><strong id="bTotal">—</strong></div>
+<div class="metric"><span>ผล</span><strong id="roundResult">รอไพ่ครบ</strong></div>
+</section>
+
+<section class="panel">
+<h2>4. ประวัติผลย้อนหลัง</h2>
+<div class="metric"><span>จำนวนตาที่บันทึก</span><strong id="count">0</strong></div>
+<div class="metric"><span>Player</span><strong id="pStat">0 (0%)</strong></div>
+<div class="metric"><span>Banker</span><strong id="bStat">0 (0%)</strong></div>
+<div class="metric"><span>Tie</span><strong id="tStat">0 (0%)</strong></div>
+<div class="board" id="board" style="margin-top:12px"></div>
+<div class="row" style="margin-top:12px">
+<button id="undo" class="secondary">ลบผลล่าสุด</button>
+<button id="clearHistory" class="secondary">ล้างประวัติทั้งหมด</button>
+</div>
+<div id="historyList"></div>
+</section>
+<p class="note warn">หมายเหตุ: ประวัติเป็นเพียงสถิติของตาที่ผ่านมา ไม่สามารถบอกหรือรับประกันผลตาถัดไปได้ แต่ละตาเป็นเหตุการณ์สุ่มแยกจากกัน</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let stream=null, player=[], banker=[], history=[];
+try{history=JSON.parse(localStorage.getItem('baccaratHistory')||'[]')}catch(e){history=[]}
+const valueOf=r=>r==='A'?1:['10','J','Q','K'].includes(r)?0:Number(r);
+const score=cards=>cards.reduce((s,c)=>s+valueOf(c.rank),0)%10;
+function cardText(c){return `${c.rank}${c.suit}`}
+function renderHands(){
+ $('playerCards').innerHTML=player.length?player.map(c=>`<span class="playing-card ${['♥','♦'].includes(c.suit)?'red':''}">${cardText(c)}</span>`).join(' '):'ยังไม่มีไพ่';
+ $('bankerCards').innerHTML=banker.length?banker.map(c=>`<span class="playing-card ${['♥','♦'].includes(c.suit)?'red':''}">${cardText(c)}</span>`).join(' '):'ยังไม่มีไพ่';
+ $('playerScore').textContent='แต้ม '+score(player);
+ $('bankerScore').textContent='แต้ม '+score(banker);
+ const ready=player.length>=2&&banker.length>=2;
+ $('pTotal').textContent=ready?score(player):'—';
+ $('bTotal').textContent=ready?score(banker):'—';
+ $('roundResult').textContent=ready?(score(player)===score(banker)?'เสมอ (Tie)':score(player)>score(banker)?'Player ชนะ':'Banker ชนะ'):'รอไพ่ครบอย่างน้อยฝั่งละ 2 ใบ';
+}
+$('addCard').onclick=()=>{
+ const c={rank:$('rank').value,suit:$('suit').value};
+ const target=$('hand').value==='P'?player:banker;
+ if(target.length>=3){alert('ฝั่งนี้มีไพ่ครบ 3 ใบแล้ว');return}
+ target.push(c);renderHands();
+};
+$('clearHands').onclick=()=>{player=[];banker=[];renderHands()};
+$('saveRound').onclick=()=>{
+ if(player.length<2||banker.length<2){alert('กรุณาใส่ไพ่อย่างน้อยฝั่งละ 2 ใบก่อน');return}
+ const ps=score(player),bs=score(banker),winner=ps===bs?'T':ps>bs?'P':'B';
+ history.push({player:[...player],banker:[...banker],ps,bs,winner,time:new Date().toLocaleString('th-TH')});
+ localStorage.setItem('baccaratHistory',JSON.stringify(history));
+ player=[];banker=[];renderHands();renderHistory();
+};
+function renderHistory(){
+ const p=history.filter(x=>x.winner==='P').length,b=history.filter(x=>x.winner==='B').length,t=history.filter(x=>x.winner==='T').length,n=history.length;
+ const pct=x=>n?(x/n*100).toFixed(1):'0.0';
+ $('count').textContent=n;
+ $('pStat').textContent=`${p} (${pct(p)}%)`;
+ $('bStat').textContent=`${b} (${pct(b)}%)`;
+ $('tStat').textContent=`${t} (${pct(t)}%)`;
+ $('board').innerHTML=history.map(x=>`<div class="cell"><span class="dot ${x.winner}">${x.winner}</span></div>`).join('');
+ $('historyList').innerHTML=history.slice().reverse().map((x,i)=>`<div class="metric"><span>#${n-i} · ${x.time}<br><small>P ${x.ps} / B ${x.bs}</small></span><strong>${x.winner==='P'?'Player':x.winner==='B'?'Banker':'Tie'}</strong></div>`).join('');
+}
+$('undo').onclick=()=>{history.pop();localStorage.setItem('baccaratHistory',JSON.stringify(history));renderHistory()};
+$('clearHistory').onclick=()=>{if(confirm('ล้างประวัติทั้งหมดในอุปกรณ์นี้?')){history=[];localStorage.removeItem('baccaratHistory');renderHistory()}};
+
+$('start').onclick=async()=>{
+ try{
+  if(!navigator.mediaDevices?.getUserMedia)throw new Error('เบราว์เซอร์นี้ไม่รองรับกล้อง หรือหน้าเว็บไม่ได้เปิดผ่าน HTTPS');
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+  $('video').srcObject=stream;$('video').style.display='block';$('placeholder').style.display='none';
+  $('snap').disabled=false;$('stop').disabled=false;$('cameraStatus').textContent='เปิดกล้องแล้ว · ใช้กล้องหลัง';
+ }catch(e){$('cameraStatus').textContent='เปิดกล้องไม่ได้: '+e.message+' · ตรวจสิทธิ์กล้องและใช้ HTTPS';}
+};
+$('stop').onclick=stopCamera;
+function stopCamera(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('video').srcObject=null;$('video').style.display='none';$('placeholder').style.display='block';$('snap').disabled=true;$('stop').disabled=true;$('cameraStatus').textContent='ปิดกล้องแล้ว'}
+$('snap').onclick=()=>{
+ const v=$('video'),c=$('canvas');
+ if(!v.videoWidth){$('cameraStatus').textContent='กล้องยังไม่พร้อม';return}
+ c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);
+ const w=window.open('','_blank');
+ if(w){w.document.write('<title>ภาพไพ่ที่ถ่าย</title><img style="max-width:100%;height:auto" src="'+c.toDataURL('image/jpeg')+'">');}
+ $('cameraStatus').textContent='ถ่ายภาพแล้ว · กรุณาเลือกหน้าไพ่และตรวจสอบด้วยตนเอง';
+};
+renderHands();renderHistory();
+</script>
+</body>
+</html>
